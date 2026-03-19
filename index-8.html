@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vaner</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
+<meta name="theme-color" content="#1a4433">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;
+  --text:#f0ede8;--muted:#666;--accent:#e8c547;--accent-dim:#7a6a1e;
+  --green:#3d9e75;--green-dim:#1a4433;--green-border:#1f5c40;--green-bg:#112b20;
+  --red:#c94040;--red-dim:#2a1010;--red-border:#6b2a2a;
+  --font-display:'DM Serif Display',serif;--font-mono:'DM Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100vh;font-size:13px;line-height:1.5;-webkit-user-select:none;user-select:none}
+h1{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing:-0.5px}
+.app{max-width:420px;margin:0 auto;padding:20px 16px 80px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.header-sub{color:var(--muted);font-size:11px;margin-top:2px}
+.add-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.add-btn:hover{background:var(--accent);color:#000}
+.today-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+
+.habit-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px 12px;margin-bottom:12px;transition:border-color 0.2s,background 0.2s;position:relative}
+.habit-card.perfect{background:var(--green-bg);border-color:var(--green-border)}
+.habit-card.above{border-color:var(--green-border)}
+.habit-card.below{border-color:var(--red-border)}
+.habit-card.reorder-mode{border-color:var(--accent);border-style:dashed}
+
+.card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.habit-info{flex:1;min-width:0}
+.habit-name{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.habit-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.streak-badge{display:flex;align-items:center;gap:3px;font-size:12px;color:var(--accent);flex-shrink:0}
+.streak-num{font-weight:500}
+.detail-btn{font-size:10px;color:var(--muted);padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:transparent;cursor:pointer;flex-shrink:0;font-family:var(--font-mono)}
+.detail-btn:hover{border-color:#444;color:var(--text)}
+
+.reorder-bar{display:none;justify-content:space-between;align-items:center;margin-bottom:10px;padding:8px 12px;background:var(--surface2);border-radius:8px}
+.reorder-bar.show{display:flex}
+.reorder-bar span{font-size:11px;color:var(--accent)}
+.reorder-btns{display:flex;gap:8px}
+.arrow-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.arrow-btn:active{background:var(--accent);color:#000}
+.arrow-btn:disabled{border-color:var(--border);color:var(--muted);opacity:0.4}
+.close-reorder{font-size:11px;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px 8px;font-family:var(--font-mono)}
+
+.action-row{display:flex;gap:8px;margin-bottom:10px}
+.btn-done{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-done:hover{border-color:var(--green);color:var(--green)}
+.btn-done.active{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.btn-fail{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-fail:hover{border-color:var(--red);color:var(--red)}
+.btn-fail.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+
+.mini-cal{display:flex;gap:3px;margin-bottom:10px;flex-wrap:wrap}
+.mc-day{width:20px;height:20px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);flex-shrink:0}
+.mc-day.done{background:var(--green-dim);color:var(--green)}
+.mc-day.fail{background:var(--red-dim);color:var(--red)}
+.mc-day.today{outline:1px solid var(--accent)}
+
+.prog-labels{display:flex;justify-content:space-between;margin-bottom:3px}
+.prog-label{font-size:10px;color:var(--muted)}
+.prog-row{display:flex;align-items:center;gap:8px}
+.prog-bar-wrap{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;position:relative}
+.prog-bar{height:100%;border-radius:2px;transition:width 0.3s}
+.prog-bar.good{background:var(--green)}
+.prog-bar.bad{background:var(--red)}
+.prog-target-line{position:absolute;top:0;height:100%;width:2px;background:var(--muted);opacity:0.4}
+.prog-pct{font-size:11px;font-weight:500;min-width:36px;text-align:right}
+.prog-pct.good{color:var(--green)}
+.prog-pct.bad{color:var(--red)}
+
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty h2{font-family:var(--font-display);font-size:20px;color:var(--text);margin-bottom:8px;font-weight:400}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:420px;padding:24px 20px 40px;max-height:90vh;overflow-y:auto}
+.sheet-handle{width:36px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.sheet h2{font-family:var(--font-display);font-size:22px;font-weight:400;margin-bottom:20px}
+.sheet h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+label{display:block;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+input[type=text],textarea,input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px 12px;outline:none;transition:border-color 0.15s}
+input[type=text]:focus,textarea:focus,input[type=number]:focus{border-color:#444}
+textarea{resize:vertical;min-height:72px}
+.freq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.freq-btn{padding:10px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;transition:all 0.15s;text-align:left}
+.freq-btn:hover{border-color:#444;color:var(--text)}
+.freq-btn.active{border-color:var(--accent);color:var(--accent)}
+.freq-extra{display:none;margin-top:8px;align-items:center;gap:8px}
+.freq-extra.show{display:flex}
+.freq-extra span{color:var(--muted);font-size:12px;white-space:nowrap}
+.freq-extra input[type=number]{width:60px;text-align:center}
+.goal-row{display:flex;align-items:center;gap:12px;margin-top:4px}
+.goal-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:var(--surface2);border-radius:2px;outline:none;border:none;padding:0}
+.goal-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer}
+.goal-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.goal-val{font-size:16px;font-weight:500;color:var(--accent);min-width:44px;text-align:right}
+.goal-presets{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.goal-preset{padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);font-family:var(--font-mono);font-size:11px;cursor:pointer;transition:all 0.15s}
+.goal-preset:hover{border-color:#444;color:var(--text)}
+.goal-preset.active{border-color:var(--accent);color:var(--accent)}
+.habit-loop-section{background:var(--surface2);border-radius:10px;padding:14px;border-left:2px solid var(--accent-dim)}
+.loop-field{margin-bottom:14px}
+.loop-field:last-child{margin-bottom:0}
+.loop-label{font-size:11px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.loop-hint{font-size:11px;color:var(--muted);margin-bottom:6px}
+.actions{display:flex;gap:10px;margin-top:24px}
+.btn-primary{flex:1;padding:13px;background:var(--accent);color:#000;border:none;border-radius:8px;font-family:var(--font-mono);font-size:13px;font-weight:500;cursor:pointer}
+.btn-primary:hover{opacity:0.85}
+.btn-secondary{padding:13px 18px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:13px;cursor:pointer}
+.btn-secondary:hover{color:var(--text);border-color:#444}
+.btn-danger{padding:13px 18px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:8px;font-family:var(--font-mono);font-size:13px;cursor:pointer}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.stat-grid-wide{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
+.stat-box{background:var(--surface2);border-radius:8px;padding:10px}
+.stat-val{font-size:20px;font-weight:500;color:var(--accent)}
+.stat-val.good{color:var(--green)}
+.stat-val.bad{color:var(--red)}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.stat-target{font-size:10px;color:var(--muted);opacity:0.6}
+.full-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.full-cal-day{aspect-ratio:1;border-radius:4px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.full-cal-day.done{background:var(--green-dim);color:var(--green)}
+.full-cal-day.fail{background:var(--red-dim);color:var(--red)}
+.full-cal-day.today{outline:1px solid var(--accent)}
+.full-cal-day.empty-day{background:transparent}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.cal-wday{font-size:10px;color:var(--muted);text-align:center}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{flex:1;padding:10px;background:none;border:none;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.section-lbl{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>vaner</h1>
+      <div class="header-sub" id="date-label"></div>
+    </div>
+    <button class="add-btn" onclick="openCreate()">+</button>
+  </div>
+  <div class="today-label">I dag</div>
+  <div id="habit-list"></div>
+</div>
+
+<div class="overlay" id="overlay" style="display:none" onclick="closeOverlay(event)">
+  <div class="sheet" id="create-sheet" style="display:none">
+    <div class="sheet-handle"></div>
+    <h2>Ny vane</h2>
+    <label>Navn</label>
+    <input type="text" id="f-name" placeholder="fx Meditation, L&oslash;betur, L&aelig;se...">
+    <div style="height:16px"></div>
+    <label>Frekvens</label>
+    <div class="freq-grid">
+      <button class="freq-btn active" data-freq="daily" onclick="selectFreq('daily',this)">Dagligt</button>
+      <button class="freq-btn" data-freq="weekdays" onclick="selectFreq('weekdays',this)">Kun hverdage</button>
+      <button class="freq-btn" data-freq="weekly" onclick="selectFreq('weekly',this)">Ugentligt</button>
+      <button class="freq-btn" data-freq="xweek" onclick="selectFreq('xweek',this)">X gange/uge</button>
+    </div>
+    <div class="freq-extra" id="freq-extra">
+      <span>Antal gange:</span>
+      <input type="number" id="f-xcount" min="1" max="7" value="3" style="width:60px;text-align:center">
+      <span>om ugen</span>
+    </div>
+    <div style="height:20px"></div>
+    <label>M&aring;l for gennemf&oslash;relse</label>
+    <div class="goal-row">
+      <input type="range" class="goal-slider" id="f-goal" min="10" max="100" step="5" value="70" oninput="updateGoalDisplay()">
+      <span class="goal-val" id="f-goal-val">70%</span>
+    </div>
+    <div class="goal-presets">
+      <button class="goal-preset" onclick="setGoal(50)">50%</button>
+      <button class="goal-preset active" onclick="setGoal(70)">70%</button>
+      <button class="goal-preset" onclick="setGoal(80)">80%</button>
+      <button class="goal-preset" onclick="setGoal(90)">90%</button>
+      <button class="goal-preset" onclick="setGoal(100)">100%</button>
+    </div>
+    <div style="height:20px"></div>
+    <h3>Habit loop &mdash; design din vane</h3>
+    <div class="habit-loop-section">
+      <div class="loop-field">
+        <div class="loop-label">Cue</div>
+        <div class="loop-hint">Hvad er triggeren? Hvorn&aring;r/hvor g&oslash;r du det?</div>
+        <textarea id="f-cue" rows="2" placeholder="fx Lige efter morgenkaffen, kl. 07:00..."></textarea>
+      </div>
+      <div class="loop-field">
+        <div class="loop-label">Craving</div>
+        <div class="loop-hint">Hvad er motivationen? Hvad vil du opn&aring;?</div>
+        <textarea id="f-craving" rows="2" placeholder="fx Jeg vil have mere ro i sindet..."></textarea>
+      </div>
+      <div class="loop-field">
+        <div class="loop-label">Response</div>
+        <div class="loop-hint">Beskriv pr&aelig;cis hvad du g&oslash;r &mdash; og dit trick til at g&oslash;re det nemt</div>
+        <textarea id="f-response" rows="2" placeholder="fx S&aelig;t timer p&aring; 5 min, sid p&aring; samme pude..."></textarea>
+      </div>
+      <div class="loop-field">
+        <div class="loop-label">Reward</div>
+        <div class="loop-hint">Hvordan bel&oslash;nner du dig selv bagefter?</div>
+        <textarea id="f-reward" rows="2" placeholder="fx Mark&eacute;r streaken, tag en god kaffe..."></textarea>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="closeSheets()">Annuller</button>
+      <button class="btn-primary" onclick="saveHabit()">Gem vane</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="detail-sheet" style="display:none">
+    <div class="sheet-handle"></div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('stats',this)">Statistik</button>
+      <button class="tab" onclick="switchTab('loop',this)">Habit loop</button>
+    </div>
+    <div id="tab-stats">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="d-streak">0</div><div class="stat-lbl">Streak &#128293;</div></div>
+        <div class="stat-box"><div class="stat-val" id="d-week-pct">&#8212;</div><div class="stat-lbl">Denne uge</div><div class="stat-target" id="d-week-target">m&aring;l: 70%</div></div>
+      </div>
+      <div class="stat-grid-wide">
+        <div class="stat-box"><div class="stat-val" id="d-all-pct">&#8212;</div><div class="stat-lbl">Fra start til i dag</div><div class="stat-target" id="d-all-target">m&aring;l: 70%</div></div>
+      </div>
+      <div class="section-lbl">Denne m&aring;ned</div>
+      <div class="cal-header">
+        <div class="cal-wday">M</div><div class="cal-wday">T</div><div class="cal-wday">O</div>
+        <div class="cal-wday">T</div><div class="cal-wday">F</div><div class="cal-wday">L</div><div class="cal-wday">S</div>
+      </div>
+      <div class="full-cal-grid" id="d-cal"></div>
+      <div class="actions">
+        <button class="btn-danger" onclick="deleteHabit()">Slet vane</button>
+        <button class="btn-primary" onclick="closeSheets()">Luk</button>
+      </div>
+    </div>
+    <div id="tab-loop" style="display:none">
+      <h2 id="d-name" style="margin-bottom:16px;font-size:20px"></h2>
+      <div class="habit-loop-section">
+        <div class="loop-field"><div class="loop-label">Cue</div><div id="d-cue" style="font-size:13px;color:var(--text)"></div></div>
+        <div class="loop-field"><div class="loop-label">Craving</div><div id="d-craving" style="font-size:13px;color:var(--text)"></div></div>
+        <div class="loop-field"><div class="loop-label">Response</div><div id="d-response" style="font-size:13px;color:var(--text)"></div></div>
+        <div class="loop-field"><div class="loop-label">Reward</div><div id="d-reward" style="font-size:13px;color:var(--text)"></div></div>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button class="btn-primary" onclick="closeSheets()">Luk</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var habits=[],selectedFreq='daily',viewingId=null,reorderingId=null,longPressTimer=null;
+var FL={daily:'Dagligt',weekdays:'Kun hverdage',weekly:'Ugentligt',xweek:'X gange/uge'};
+
+function load(){try{habits=JSON.parse(localStorage.getItem('ht_habits')||'[]')}catch(e){habits=[]}renderList()}
+function save(){localStorage.setItem('ht_habits',JSON.stringify(habits))}
+function today(){return new Date().toISOString().slice(0,10)}
+function getLog(h){return h.log||[]}
+function getFails(h){return h.fails||[]}
+function isDone(h){return getLog(h).includes(today())}
+function isFail(h){return getFails(h).includes(today())}
+function getTarget(h){return h.goal||70}
+
+function calcStreak(h){
+  var log=new Set(getLog(h)),streak=0,d=new Date();
+  if(!log.has(today()))d.setDate(d.getDate()-1);
+  for(var i=0;i<365;i++){var k=d.toISOString().slice(0,10);if(log.has(k)){streak++;d.setDate(d.getDate()-1)}else break}
+  return streak;
+}
+function shouldCount(h,dow){
+  if(h.freq==='daily')return true;
+  if(h.freq==='weekdays')return dow>=1&&dow<=5;
+  return true;
+}
+function calcFromStart(h){
+  if(!h.created)return -1;
+  var log=new Set(getLog(h)),total=0,done=0;
+  var end=new Date();end.setHours(0,0,0,0);
+  for(var d=new Date(h.created);d<=end;d.setDate(d.getDate()+1)){
+    var k=d.toISOString().slice(0,10);
+    if(shouldCount(h,d.getDay())){total++;if(log.has(k))done++}
+  }
+  return total===0?-1:Math.round(done/total*100);
+}
+function calcWeekPct(h){
+  var now=new Date(),dow=now.getDay();
+  var mon=new Date(now);mon.setDate(now.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);
+  var log=new Set(getLog(h)),total=0,done=0,end=new Date();end.setHours(0,0,0,0);
+  for(var d=new Date(mon);d<=end;d.setDate(d.getDate()+1)){
+    var k=d.toISOString().slice(0,10);
+    if(shouldCount(h,d.getDay())){total++;if(log.has(k))done++}
+  }
+  return total===0?-1:Math.round(done/total*100);
+}
+function fmtPct(v){return v<0?'\u2014':v+'%'}
+function colorClass(v,t){return v<0?'':v>=t?'good':'bad'}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function updateGoalDisplay(){
+  var v=parseInt(document.getElementById('f-goal').value);
+  document.getElementById('f-goal-val').textContent=v+'%';
+  document.querySelectorAll('.goal-preset').forEach(function(b){b.classList.toggle('active',parseInt(b.textContent)===v)});
+}
+function setGoal(v){document.getElementById('f-goal').value=v;updateGoalDisplay()}
+
+function miniCal(h){
+  var log=new Set(getLog(h)),fails=new Set(getFails(h)),todayStr=today(),html='',now=new Date();
+  for(var i=13;i>=0;i--){
+    var d=new Date(now);d.setDate(now.getDate()-i);
+    var k=d.toISOString().slice(0,10);
+    var cls='mc-day';
+    if(log.has(k))cls+=' done';else if(fails.has(k))cls+=' fail';
+    if(k===todayStr)cls+=' today';
+    html+='<div class="'+cls+'">'+d.getDate()+'</div>';
+  }
+  return html;
+}
+
+function moveHabit(id,dir){
+  var idx=habits.findIndex(function(h){return h.id===id});
+  var newIdx=idx+dir;
+  if(newIdx<0||newIdx>=habits.length)return;
+  var tmp=habits[idx];habits[idx]=habits[newIdx];habits[newIdx]=tmp;
+  save();
+  reorderingId=id;
+  renderList();
+}
+
+function cancelReorder(){
+  reorderingId=null;
+  renderList();
+}
+
+function renderList(){
+  var d=new Date();
+  document.getElementById('date-label').textContent=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
+  var el=document.getElementById('habit-list');
+  if(!habits.length){
+    el.innerHTML='<div class="empty"><h2>Ingen vaner endnu</h2><p style="color:var(--muted);font-size:12px;margin-top:8px">Tryk + for at tilf\u00f8je din f\u00f8rste vane</p></div>';
+    return;
+  }
+  el.innerHTML=habits.map(function(h,idx){
+    var done=isDone(h),fail=isFail(h),streak=calcStreak(h);
+    var pct=calcFromStart(h),target=getTarget(h);
+    var isPerfect=pct===100;
+    var isReordering=reorderingId===h.id;
+    var cardCls='habit-card'+(isReordering?' reorder-mode':isPerfect?' perfect':pct>=target?' above':pct>=0?' below':'');
+    var barW=pct<0?0:Math.min(pct,100);
+    var barCls=pct>=target?'good':'bad';
+    var pctCls=colorClass(pct,target);
+
+    var reorderBar='<div class="reorder-bar'+(isReordering?' show':'')+'" id="rb-'+h.id+'">'+
+      '<span>Flyt vane</span>'+
+      '<div class="reorder-btns">'+
+        '<button class="arrow-btn" onclick="moveHabit(\''+h.id+'\',-1)" '+(idx===0?'disabled':'')+'>&#8593;</button>'+
+        '<button class="arrow-btn" onclick="moveHabit(\''+h.id+'\',1)" '+(idx===habits.length-1?'disabled':'')+'>&#8595;</button>'+
+      '</div>'+
+      '<button class="close-reorder" onclick="cancelReorder()">Luk</button>'+
+    '</div>';
+
+    return '<div class="'+cardCls+'" id="card-'+h.id+'" data-id="'+h.id+'">'+
+      reorderBar+
+      '<div class="card-top">'+
+        '<div class="habit-info">'+
+          '<div class="habit-name">'+escHtml(h.name)+'</div>'+
+          '<div class="habit-meta">'+(FL[h.freq]||h.freq)+(h.freq==='xweek'?' &middot; '+h.xcount+'x/uge':'')+'</div>'+
+        '</div>'+
+        (streak>0?'<div class="streak-badge"><span style="font-family:sans-serif;font-size:14px">&#128293;</span><span class="streak-num">'+streak+'</span></div>':'')+
+        '<button class="detail-btn" onclick="openDetail(\''+h.id+'\',event)">detaljer</button>'+
+      '</div>'+
+      '<div class="action-row">'+
+        '<button class="btn-done'+(done?' active':'')+'" onclick="toggleDone(\''+h.id+'\',event)">'+
+          '<span style="font-family:sans-serif">&#10003;</span> Gennemf\u00f8rt'+
+        '</button>'+
+        '<button class="btn-fail'+(fail?' active':'')+'" onclick="toggleFail(\''+h.id+'\',event)">'+
+          '<span style="font-family:sans-serif">&#10005;</span> Ikke gennemf\u00f8rt'+
+        '</button>'+
+      '</div>'+
+      '<div class="mini-cal">'+miniCal(h)+'</div>'+
+      '<div class="prog-labels"><span class="prog-label">Fra start til i dag</span><span class="prog-label">m\u00e5l '+target+'%</span></div>'+
+      '<div class="prog-row">'+
+        '<div class="prog-bar-wrap">'+
+          '<div class="prog-bar '+barCls+'" style="width:'+barW+'%"></div>'+
+          '<div class="prog-target-line" style="left:'+Math.min(target,100)+'%"></div>'+
+        '</div>'+
+        '<span class="prog-pct '+pctCls+'">'+fmtPct(pct)+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  attachLongPress();
+}
+
+function attachLongPress(){
+  document.querySelectorAll('.habit-card').forEach(function(card){
+    var id=card.getAttribute('data-id');
+    var timer=null;
+
+    card.addEventListener('touchstart',function(e){
+      // Ignorer tryk på knapper
+      if(e.target.closest('button'))return;
+      timer=setTimeout(function(){
+        reorderingId=reorderingId===id?null:id;
+        renderList();
+      },500);
+    },{passive:true});
+
+    card.addEventListener('touchend',function(){clearTimeout(timer)},{passive:true});
+    card.addEventListener('touchmove',function(){clearTimeout(timer)},{passive:true});
+  });
+}
+
+function toggleDone(id,e){
+  e.stopPropagation();
+  var h=habits.find(function(x){return x.id===id});if(!h)return;
+  var t=today();h.log=h.log||[];h.fails=h.fails||[];
+  var idx=h.log.indexOf(t);
+  if(idx>=0)h.log.splice(idx,1);
+  else{h.log.push(t);var fi=h.fails.indexOf(t);if(fi>=0)h.fails.splice(fi,1)}
+  save();renderList();
+}
+function toggleFail(id,e){
+  e.stopPropagation();
+  var h=habits.find(function(x){return x.id===id});if(!h)return;
+  var t=today();h.log=h.log||[];h.fails=h.fails||[];
+  var idx=h.fails.indexOf(t);
+  if(idx>=0)h.fails.splice(idx,1);
+  else{h.fails.push(t);var li=h.log.indexOf(t);if(li>=0)h.log.splice(li,1)}
+  save();renderList();
+}
+
+function openCreate(){
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('create-sheet').style.display='block';
+  ['f-name','f-cue','f-craving','f-response','f-reward'].forEach(function(id){document.getElementById(id).value=''});
+  document.getElementById('f-xcount').value=3;
+  setGoal(70);
+  selectFreq('daily',document.querySelector('[data-freq="daily"]'));
+}
+function openDetail(id,e){
+  if(e)e.stopPropagation();
+  viewingId=id;
+  var h=habits.find(function(x){return x.id===id});if(!h)return;
+  var target=getTarget(h);
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('detail-sheet').style.display='block';
+  document.getElementById('d-streak').textContent=calcStreak(h);
+  var weekPct=calcWeekPct(h),allPct=calcFromStart(h);
+  var ws=document.getElementById('d-week-pct');ws.textContent=fmtPct(weekPct);ws.className='stat-val '+colorClass(weekPct,target);
+  var as=document.getElementById('d-all-pct');as.textContent=fmtPct(allPct);as.className='stat-val '+colorClass(allPct,target);
+  document.getElementById('d-week-target').textContent='m\u00e5l: '+target+'%';
+  document.getElementById('d-all-target').textContent='m\u00e5l: '+target+'%';
+  document.getElementById('d-name').textContent=h.name;
+  document.getElementById('d-cue').textContent=h.cue||'\u2014';
+  document.getElementById('d-craving').textContent=h.craving||'\u2014';
+  document.getElementById('d-response').textContent=h.response||'\u2014';
+  document.getElementById('d-reward').textContent=h.reward||'\u2014';
+  renderFullCal(h);switchTab('stats',document.querySelector('.tab'));
+}
+function renderFullCal(h){
+  var now=new Date(),year=now.getFullYear(),month=now.getMonth();
+  var last=new Date(year,month+1,0);
+  var log=new Set(getLog(h)),fails=new Set(getFails(h)),todayStr=today(),html='';
+  var startDow=new Date(year,month,1).getDay();startDow=startDow===0?6:startDow-1;
+  for(var i=0;i<startDow;i++)html+='<div class="full-cal-day empty-day"></div>';
+  for(var day=1;day<=last.getDate();day++){
+    var dd=new Date(year,month,day),k=dd.toISOString().slice(0,10);
+    var isFuture=dd>new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    var cls='full-cal-day';
+    if(isFuture)cls+=' empty-day';
+    else if(log.has(k))cls+=' done';
+    else if(fails.has(k))cls+=' fail';
+    if(k===todayStr)cls+=' today';
+    html+='<div class="'+cls+'">'+day+'</div>';
+  }
+  document.getElementById('d-cal').innerHTML=html;
+}
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  if(btn)btn.classList.add('active');
+  document.getElementById('tab-stats').style.display=tab==='stats'?'block':'none';
+  document.getElementById('tab-loop').style.display=tab==='loop'?'block':'none';
+}
+function selectFreq(freq,btn){
+  selectedFreq=freq;
+  document.querySelectorAll('.freq-btn').forEach(function(b){b.classList.remove('active')});
+  if(btn)btn.classList.add('active');
+  document.getElementById('freq-extra').className='freq-extra'+(freq==='xweek'?' show':'');
+}
+function saveHabit(){
+  var name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').focus();return}
+  habits.push({
+    id:Date.now().toString(),name:name,freq:selectedFreq,
+    xcount:parseInt(document.getElementById('f-xcount').value)||3,
+    goal:parseInt(document.getElementById('f-goal').value)||70,
+    cue:document.getElementById('f-cue').value.trim(),
+    craving:document.getElementById('f-craving').value.trim(),
+    response:document.getElementById('f-response').value.trim(),
+    reward:document.getElementById('f-reward').value.trim(),
+    log:[],fails:[],created:today()
+  });
+  save();closeSheets();renderList();
+}
+function deleteHabit(){
+  if(!confirm('Slet denne vane?'))return;
+  habits=habits.filter(function(h){return h.id!==viewingId});
+  save();closeSheets();renderList();
+}
+function closeOverlay(e){if(e.target.id==='overlay')closeSheets()}
+function closeSheets(){
+  document.getElementById('overlay').style.display='none';
+  document.getElementById('create-sheet').style.display='none';
+  document.getElementById('detail-sheet').style.display='none';
+}
+load();
+</script>
+</body>
+</html>
