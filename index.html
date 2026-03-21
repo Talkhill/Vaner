@@ -22,8 +22,12 @@ h1{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing
 .app{max-width:420px;margin:0 auto;padding:20px 16px 80px}
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
 .header-sub{color:var(--muted);font-size:11px;margin-top:2px}
+.header-right{display:flex;gap:8px;align-items:center}
 .add-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
 .add-btn:hover{background:var(--accent);color:#000}
+.backup-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:sans-serif}
+.backup-btn:hover{border-color:var(--accent);color:var(--accent)}
+.backup-btn.alert{border-color:var(--accent);color:var(--accent)}
 .today-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
 
 .habit-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px 12px;margin-bottom:12px;transition:border-color 0.2s,background 0.2s;position:relative}
@@ -59,7 +63,8 @@ h1{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing
 .btn-fail.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
 
 .mini-cal{display:flex;gap:3px;margin-bottom:10px;flex-wrap:wrap}
-.mc-day{width:20px;height:20px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);flex-shrink:0}
+.mc-day{width:20px;height:20px;border-radius:3px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);flex-shrink:0;cursor:pointer;transition:opacity 0.1s}
+.mc-day:active{opacity:0.6}
 .mc-day.done{background:var(--green-dim);color:var(--green)}
 .mc-day.fail{background:var(--red-dim);color:var(--red)}
 .mc-day.today{outline:1px solid var(--accent)}
@@ -78,6 +83,19 @@ h1{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing
 
 .empty{text-align:center;padding:48px 24px;color:var(--muted)}
 .empty h2{font-family:var(--font-display);font-size:20px;color:var(--text);margin-bottom:8px;font-weight:400}
+
+/* DAY EDIT POPUP */
+.day-popup{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.day-popup-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:320px}
+.day-popup-title{font-family:var(--font-display);font-size:18px;font-weight:400;margin-bottom:6px}
+.day-popup-sub{font-size:11px;color:var(--muted);margin-bottom:20px}
+.day-popup-btns{display:flex;flex-direction:column;gap:10px}
+.day-opt{padding:12px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:var(--font-mono);font-size:13px;cursor:pointer;text-align:left;transition:all 0.15s;display:flex;align-items:center;gap:10px}
+.day-opt:hover{border-color:#444}
+.day-opt.opt-done{border-color:var(--green);color:var(--green)}
+.day-opt.opt-fail{border-color:var(--red);color:var(--red)}
+.day-opt.opt-clear{border-color:var(--border);color:var(--muted)}
+.day-popup-cancel{margin-top:12px;width:100%;padding:10px;background:transparent;border:none;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer}
 
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:420px;padding:24px 20px 40px;max-height:90vh;overflow-y:auto}
@@ -125,17 +143,29 @@ textarea{resize:vertical;min-height:72px}
 .stat-lbl{font-size:10px;color:var(--muted);margin-top:2px}
 .stat-target{font-size:10px;color:var(--muted);opacity:0.6}
 .full-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
-.full-cal-day{aspect-ratio:1;border-radius:4px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted)}
+.full-cal-day{aspect-ratio:1;border-radius:4px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);cursor:pointer;transition:opacity 0.1s}
+.full-cal-day:active{opacity:0.6}
 .full-cal-day.done{background:var(--green-dim);color:var(--green)}
 .full-cal-day.fail{background:var(--red-dim);color:var(--red)}
 .full-cal-day.today{outline:1px solid var(--accent)}
-.full-cal-day.empty-day{background:transparent}
+.full-cal-day.empty-day{background:transparent;cursor:default}
+.full-cal-day.future{background:var(--surface2);opacity:0.3;cursor:default}
 .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
 .cal-wday{font-size:10px;color:var(--muted);text-align:center}
 .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px}
 .tab{flex:1;padding:10px;background:none;border:none;color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .section-lbl{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px}
+.cal-hint{font-size:10px;color:var(--muted);margin-top:6px;text-align:center}
+
+/* BACKUP SHEET */
+.backup-section{margin-bottom:20px}
+.backup-section p{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.backup-row{display:flex;gap:10px}
+.btn-backup{flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-family:var(--font-mono);font-size:12px;cursor:pointer;text-align:center;transition:all 0.15s}
+.btn-backup:hover{border-color:var(--accent);color:var(--accent)}
+.btn-backup.import{border-color:var(--green);color:var(--green)}
+.backup-notice{background:var(--surface2);border-radius:8px;padding:12px;font-size:11px;color:var(--muted);line-height:1.6;border-left:2px solid var(--accent)}
 </style>
 </head>
 <body>
@@ -145,13 +175,38 @@ textarea{resize:vertical;min-height:72px}
       <h1>vaner</h1>
       <div class="header-sub" id="date-label"></div>
     </div>
-    <button class="add-btn" onclick="openCreate()">+</button>
+    <div class="header-right">
+      <button class="backup-btn" id="backup-btn" onclick="openBackup()" title="Backup">&#128190;</button>
+      <button class="add-btn" onclick="openCreate()">+</button>
+    </div>
   </div>
   <div class="today-label">I dag</div>
   <div id="habit-list"></div>
 </div>
 
+<!-- DAY EDIT POPUP -->
+<div class="day-popup" id="day-popup" style="display:none">
+  <div class="day-popup-box">
+    <div class="day-popup-title" id="dp-title">Rediger dag</div>
+    <div class="day-popup-sub" id="dp-sub"></div>
+    <div class="day-popup-btns">
+      <button class="day-opt opt-done" onclick="setDayStatus('done')">
+        <span style="font-family:sans-serif">&#10003;</span> Gennemf&oslash;rt
+      </button>
+      <button class="day-opt opt-fail" onclick="setDayStatus('fail')">
+        <span style="font-family:sans-serif">&#10005;</span> Ikke gennemf&oslash;rt
+      </button>
+      <button class="day-opt opt-clear" onclick="setDayStatus('clear')">
+        <span style="font-family:sans-serif">&#9711;</span> Ryd markering
+      </button>
+    </div>
+    <button class="day-popup-cancel" onclick="closeDayPopup()">Annuller</button>
+  </div>
+</div>
+
 <div class="overlay" id="overlay" style="display:none" onclick="closeOverlay(event)">
+
+  <!-- OPRET VANE -->
   <div class="sheet" id="create-sheet" style="display:none">
     <div class="sheet-handle"></div>
     <h2>Ny vane</h2>
@@ -213,6 +268,7 @@ textarea{resize:vertical;min-height:72px}
     </div>
   </div>
 
+  <!-- DETALJER -->
   <div class="sheet" id="detail-sheet" style="display:none">
     <div class="sheet-handle"></div>
     <div class="tab-bar">
@@ -227,12 +283,13 @@ textarea{resize:vertical;min-height:72px}
       <div class="stat-grid-wide">
         <div class="stat-box"><div class="stat-val" id="d-all-pct">&#8212;</div><div class="stat-lbl">Fra start til i dag</div><div class="stat-target" id="d-all-target">m&aring;l: 70%</div></div>
       </div>
-      <div class="section-lbl">Denne m&aring;ned</div>
+      <div class="section-lbl">Denne m&aring;ned &mdash; tryk p&aring; en dag for at redigere</div>
       <div class="cal-header">
         <div class="cal-wday">M</div><div class="cal-wday">T</div><div class="cal-wday">O</div>
         <div class="cal-wday">T</div><div class="cal-wday">F</div><div class="cal-wday">L</div><div class="cal-wday">S</div>
       </div>
       <div class="full-cal-grid" id="d-cal"></div>
+      <div class="cal-hint">Tryk p&aring; en dag for at &aelig;ndre registreringen</div>
       <div class="actions">
         <button class="btn-danger" onclick="deleteHabit()">Slet vane</button>
         <button class="btn-primary" onclick="closeSheets()">Luk</button>
@@ -251,20 +308,60 @@ textarea{resize:vertical;min-height:72px}
       </div>
     </div>
   </div>
+
+  <!-- BACKUP SHEET -->
+  <div class="sheet" id="backup-sheet" style="display:none">
+    <div class="sheet-handle"></div>
+    <h2>Backup</h2>
+    <div class="backup-notice" style="margin-bottom:20px">
+      Dine vaner gemmes automatisk p&aring; telefonen. Tag en backup en gang om ugen for at v&aelig;re sikker.
+    </div>
+    <div class="backup-section">
+      <label>Gem backup</label>
+      <p>Eksporter alle dine vaner og data til en fil p&aring; din telefon.</p>
+      <button class="btn-backup" onclick="exportData()">&#128190; Download backup-fil</button>
+    </div>
+    <div class="backup-section">
+      <label>Gendan fra backup</label>
+      <p>Importer en tidligere gemt backup-fil. Nuv&aelig;rende data overskrives.</p>
+      <button class="btn-backup import" onclick="document.getElementById('import-input').click()">&#128196; V&aelig;lg backup-fil</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="closeSheets()">Luk</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
-var habits=[],selectedFreq='daily',viewingId=null,reorderingId=null,longPressTimer=null;
+var habits=[],selectedFreq='daily',viewingId=null,reorderingId=null;
 var FL={daily:'Dagligt',weekdays:'Kun hverdage',weekly:'Ugentligt',xweek:'X gange/uge'};
+var dayPopupHabitId=null,dayPopupDate=null;
 
-function load(){try{habits=JSON.parse(localStorage.getItem('ht_habits')||'[]')}catch(e){habits=[]}renderList()}
-function save(){localStorage.setItem('ht_habits',JSON.stringify(habits))}
+function load(){
+  try{habits=JSON.parse(localStorage.getItem('ht_habits')||'[]')}catch(e){habits=[]}
+  checkBackupReminder();
+  renderList();
+}
+function save(){
+  localStorage.setItem('ht_habits',JSON.stringify(habits));
+  localStorage.setItem('ht_last_save',today());
+}
 function today(){return new Date().toISOString().slice(0,10)}
 function getLog(h){return h.log||[]}
 function getFails(h){return h.fails||[]}
 function isDone(h){return getLog(h).includes(today())}
 function isFail(h){return getFails(h).includes(today())}
 function getTarget(h){return h.goal||70}
+
+function checkBackupReminder(){
+  var lastBackup=localStorage.getItem('ht_last_backup')||'';
+  if(!lastBackup){localStorage.setItem('ht_last_backup',today());return}
+  var days=Math.floor((new Date(today())-new Date(lastBackup))/(1000*60*60*24));
+  var btn=document.getElementById('backup-btn');
+  if(btn)btn.classList.toggle('alert',days>=7);
+}
 
 function calcStreak(h){
   var log=new Set(getLog(h)),streak=0,d=new Date();
@@ -315,9 +412,86 @@ function miniCal(h){
     var cls='mc-day';
     if(log.has(k))cls+=' done';else if(fails.has(k))cls+=' fail';
     if(k===todayStr)cls+=' today';
-    html+='<div class="'+cls+'">'+d.getDate()+'</div>';
+    html+='<div class="'+cls+'" onclick="openDayPopup(\''+h.id+'\',\''+k+'\',event)">'+d.getDate()+'</div>';
   }
   return html;
+}
+
+/* ---- DAY POPUP ---- */
+function openDayPopup(habitId,dateStr,e){
+  if(e)e.stopPropagation();
+  dayPopupHabitId=habitId;
+  dayPopupDate=dateStr;
+  var h=habits.find(function(x){return x.id===habitId});
+  if(!h)return;
+  var d=new Date(dateStr);
+  var label=d.toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('dp-title').textContent=escHtml(h.name);
+  document.getElementById('dp-sub').textContent=label;
+  var log=new Set(getLog(h)),fails=new Set(getFails(h));
+  var doneBtn=document.querySelector('.day-opt.opt-done');
+  var failBtn=document.querySelector('.day-opt.opt-fail');
+  doneBtn.style.background=log.has(dateStr)?'var(--green-dim)':'transparent';
+  failBtn.style.background=fails.has(dateStr)?'var(--red-dim)':'transparent';
+  document.getElementById('day-popup').style.display='flex';
+}
+
+function closeDayPopup(){
+  document.getElementById('day-popup').style.display='none';
+  dayPopupHabitId=null;dayPopupDate=null;
+}
+
+function setDayStatus(status){
+  var h=habits.find(function(x){return x.id===dayPopupHabitId});
+  if(!h||!dayPopupDate){closeDayPopup();return}
+  h.log=h.log||[];h.fails=h.fails||[];
+  var li=h.log.indexOf(dayPopupDate),fi=h.fails.indexOf(dayPopupDate);
+  if(li>=0)h.log.splice(li,1);
+  if(fi>=0)h.fails.splice(fi,1);
+  if(status==='done')h.log.push(dayPopupDate);
+  else if(status==='fail')h.fails.push(dayPopupDate);
+  save();
+  closeDayPopup();
+  if(viewingId)renderFullCal(habits.find(function(x){return x.id===viewingId}));
+  renderList();
+}
+
+/* ---- BACKUP ---- */
+function exportData(){
+  var data={habits:habits,exported:today()};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='vaner-backup-'+today()+'.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  localStorage.setItem('ht_last_backup',today());
+  document.getElementById('backup-btn').classList.remove('alert');
+}
+
+function importData(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(data.habits&&Array.isArray(data.habits)){
+        if(confirm('Dette overskriver dine nuv\u00e6rende data. Forts\u00e6t?')){
+          habits=data.habits;
+          save();
+          renderList();
+          alert('Backup gendannet!');
+        }
+      }else{alert('Ugyldig backup-fil')}
+    }catch(err){alert('Kunne ikke l\u00e6se filen')}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function openBackup(){
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('backup-sheet').style.display='block';
 }
 
 function moveHabit(id,dir){
@@ -325,15 +499,9 @@ function moveHabit(id,dir){
   var newIdx=idx+dir;
   if(newIdx<0||newIdx>=habits.length)return;
   var tmp=habits[idx];habits[idx]=habits[newIdx];habits[newIdx]=tmp;
-  save();
-  reorderingId=id;
-  renderList();
+  save();reorderingId=id;renderList();
 }
-
-function cancelReorder(){
-  reorderingId=null;
-  renderList();
-}
+function cancelReorder(){reorderingId=null;renderList()}
 
 function renderList(){
   var d=new Date();
@@ -352,8 +520,7 @@ function renderList(){
     var barW=pct<0?0:Math.min(pct,100);
     var barCls=pct>=target?'good':'bad';
     var pctCls=colorClass(pct,target);
-
-    var reorderBar='<div class="reorder-bar'+(isReordering?' show':'')+'" id="rb-'+h.id+'">'+
+    var reorderBar='<div class="reorder-bar'+(isReordering?' show':'')+'" >'+
       '<span>Flyt vane</span>'+
       '<div class="reorder-btns">'+
         '<button class="arrow-btn" onclick="moveHabit(\''+h.id+'\',-1)" '+(idx===0?'disabled':'')+'>&#8593;</button>'+
@@ -361,7 +528,6 @@ function renderList(){
       '</div>'+
       '<button class="close-reorder" onclick="cancelReorder()">Luk</button>'+
     '</div>';
-
     return '<div class="'+cardCls+'" id="card-'+h.id+'" data-id="'+h.id+'">'+
       reorderBar+
       '<div class="card-top">'+
@@ -391,7 +557,6 @@ function renderList(){
       '</div>'+
     '</div>';
   }).join('');
-
   attachLongPress();
 }
 
@@ -399,16 +564,10 @@ function attachLongPress(){
   document.querySelectorAll('.habit-card').forEach(function(card){
     var id=card.getAttribute('data-id');
     var timer=null;
-
     card.addEventListener('touchstart',function(e){
-      // Ignorer tryk på knapper
-      if(e.target.closest('button'))return;
-      timer=setTimeout(function(){
-        reorderingId=reorderingId===id?null:id;
-        renderList();
-      },500);
+      if(e.target.closest('button')||e.target.closest('.mc-day'))return;
+      timer=setTimeout(function(){reorderingId=reorderingId===id?null:id;renderList()},500);
     },{passive:true});
-
     card.addEventListener('touchend',function(){clearTimeout(timer)},{passive:true});
     card.addEventListener('touchmove',function(){clearTimeout(timer)},{passive:true});
   });
@@ -441,6 +600,7 @@ function openCreate(){
   setGoal(70);
   selectFreq('daily',document.querySelector('[data-freq="daily"]'));
 }
+
 function openDetail(id,e){
   if(e)e.stopPropagation();
   viewingId=id;
@@ -461,6 +621,7 @@ function openDetail(id,e){
   document.getElementById('d-reward').textContent=h.reward||'\u2014';
   renderFullCal(h);switchTab('stats',document.querySelector('.tab'));
 }
+
 function renderFullCal(h){
   var now=new Date(),year=now.getFullYear(),month=now.getMonth();
   var last=new Date(year,month+1,0);
@@ -471,14 +632,16 @@ function renderFullCal(h){
     var dd=new Date(year,month,day),k=dd.toISOString().slice(0,10);
     var isFuture=dd>new Date(now.getFullYear(),now.getMonth(),now.getDate());
     var cls='full-cal-day';
-    if(isFuture)cls+=' empty-day';
-    else if(log.has(k))cls+=' done';
-    else if(fails.has(k))cls+=' fail';
-    if(k===todayStr)cls+=' today';
-    html+='<div class="'+cls+'">'+day+'</div>';
+    if(isFuture){cls+=' future';html+='<div class="'+cls+'">'+day+'</div>';}
+    else{
+      if(log.has(k))cls+=' done';else if(fails.has(k))cls+=' fail';
+      if(k===todayStr)cls+=' today';
+      html+='<div class="'+cls+'" onclick="openDayPopup(\''+h.id+'\',\''+k+'\',event)">'+day+'</div>';
+    }
   }
   document.getElementById('d-cal').innerHTML=html;
 }
+
 function switchTab(tab,btn){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
   if(btn)btn.classList.add('active');
@@ -516,6 +679,7 @@ function closeSheets(){
   document.getElementById('overlay').style.display='none';
   document.getElementById('create-sheet').style.display='none';
   document.getElementById('detail-sheet').style.display='none';
+  document.getElementById('backup-sheet').style.display='none';
 }
 load();
 </script>
